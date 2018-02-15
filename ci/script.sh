@@ -41,6 +41,6 @@ chmod 600 deploy_key
 eval `ssh-agent -s`
 ssh-add deploy_key
 
-git remote set-url origin git@github.com:CryZe/LiveSplitOne.git
+git remote set-url origin git@github.com:LiveSplit/LiveSplitOne.git
 
 git push origin gh-pages -f

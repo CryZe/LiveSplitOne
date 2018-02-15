@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as LiveSplit from "../livesplit";
+import { gradientToCss } from "../util/ColorUtil";
 
 export interface Props { state: LiveSplit.TextComponentStateJson }
 
@@ -9,22 +10,29 @@ export default class Text extends React.Component<Props> {
     }
 
     public render() {
-        const { state } = this.props;
-        const text = "Center" in state ? (
+        const { background, text } = this.props.state;
+
+        const rendered = "Center" in text ? (
             <tr>
-                <td className="text-component-text center-text">{state.Center}</td>
+                <td className="text-component-text center-text">{text.Center}</td>
             </tr>
         ) : (
                 <tr>
-                    <td className="text-component-text">{state.Split[0]}</td>
-                    <td className="text-component-text">{state.Split[1]}</td>
+                    <td className="text-component-text">{text.Split[0]}</td>
+                    <td className="text-component-text">{text.Split[1]}</td>
                 </tr>
             );
+
         return (
-            <div className="text-component">
+            <div
+                className="text-component"
+                style={{
+                    background: gradientToCss(background),
+                }}
+            >
                 <table>
                     <tbody>
-                        {text}
+                        {rendered}
                     </tbody>
                 </table>
             </div>

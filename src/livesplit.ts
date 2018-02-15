@@ -363,8 +363,16 @@ export interface GraphComponentStatePointJson {
     is_best_segment: boolean,
 }
 
+/** The state object describes the information to visualize for this component. */
+export interface TextComponentStateJson {
+    /** The background shown behind the component. */
+    background: Gradient,
+    /** The text to show for the component. */
+    text: TextComponentStateText,
+}
+
 /** The text that is supposed to be shown. */
-export type TextComponentStateJson =
+export type TextComponentStateText =
     { Center: string } |
     { Split: string[] };
 
