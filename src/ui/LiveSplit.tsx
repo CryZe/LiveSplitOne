@@ -256,19 +256,24 @@ export class LiveSplit extends React.Component<{}, State> {
 
     public importLayout() {
         openFileAsString((file) => {
+            let layout = null;
             try {
-                const layout = Layout.parseJson(JSON.parse(file));
-                if (layout != null) {
-                    this.state.layout.dispose();
-                    this.setState({
-                        ...this.state,
-                        layout,
-                    });
-                    layout.remount();
-                    return;
-                }
+                layout = Layout.parseJson(JSON.parse(file));
             } catch (_) { /* Failed to load the layout */ }
-            alert("Error loading Layout. This may not be a LiveSplit One Layout.");
+            if (layout == null) {
+                layout = Layout.parseOriginalLivesplitString(file);
+            }
+            if (layout == null) {
+                alert("Error loading Layout. This may not be a LiveSplit One Layout.");
+                return;
+            }
+
+            this.state.layout.dispose();
+            this.setState({
+                ...this.state,
+                layout,
+            });
+            layout.remount();
         });
     }
 

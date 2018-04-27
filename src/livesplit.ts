@@ -789,6 +789,7 @@ liveSplitCoreNative.HotkeySystem_activate = emscriptenModule.cwrap('HotkeySystem
 liveSplitCoreNative.Layout_new = emscriptenModule.cwrap('Layout_new', "number", []);
 liveSplitCoreNative.Layout_default_layout = emscriptenModule.cwrap('Layout_default_layout', "number", []);
 liveSplitCoreNative.Layout_parse_json = emscriptenModule.cwrap('Layout_parse_json', "number", ["string"]);
+liveSplitCoreNative.Layout_parse_original_livesplit = emscriptenModule.cwrap('Layout_parse_original_livesplit', "number", ["number", "number"]);
 liveSplitCoreNative.Layout_drop = emscriptenModule.cwrap('Layout_drop', null, ["number"]);
 liveSplitCoreNative.Layout_clone = emscriptenModule.cwrap('Layout_clone', "number", ["number"]);
 liveSplitCoreNative.Layout_settings_as_json = emscriptenModule.cwrap('Layout_settings_as_json', "string", ["number"]);
@@ -2886,6 +2887,28 @@ export class Layout extends LayoutRefMut {
             return null;
         }
         return result;
+    }
+    /**
+     * Parses a layout saved by the original LiveSplit. This is lossy, as not
+     * everything can be converted completely. null is returned if it couldn't be
+     * parsed at all.
+     */
+    static parseOriginalLivesplit(data: number, length: number): Layout | null {
+        const result = new Layout(liveSplitCoreNative.Layout_parse_original_livesplit(data, length));
+        if (result.ptr == 0) {
+            return null;
+        }
+        return result;
+    }
+    static parseOriginalLivesplitString(text: string): Layout | null {
+        const len = (text.length << 2) + 1;
+        const buf = emscriptenModule._malloc(len);
+        try {
+            const actualLen = emscriptenModule.stringToUTF8(text, buf, len);
+            return Layout.parseOriginalLivesplit(buf, actualLen);
+        } finally {
+            emscriptenModule._free(buf);
+        }
     }
 }
 
