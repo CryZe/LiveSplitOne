@@ -4,9 +4,10 @@ import AutoRefreshLayout from "../layout/AutoRefreshLayout";
 import {
     HotkeySystem, Layout, LayoutEditor, Run, RunEditor,
     Segment, SharedTimer, Timer, TimerPhase, TimingMethod,
+    TimeSpan,
 } from "../livesplit";
 import { exportFile, openFileAsArrayBuffer, openFileAsString } from "../util/FileUtil";
-import { assertNull, expect, maybeDispose, maybeDisposeAndThen, Option } from "../util/OptionUtil";
+import { Option, assertNull, expect, maybeDispose, maybeDisposeAndThen } from "../util/OptionUtil";
 import * as SplitsIO from "../util/SplitsIO";
 import { LayoutEditor as LayoutEditorComponent } from "./LayoutEditor";
 import { RunEditor as RunEditorComponent } from "./RunEditor";
@@ -39,6 +40,8 @@ export class LiveSplit extends React.Component<{}, State> {
         ).intoShared();
 
         const hotkeySystem = HotkeySystem.new(timer.share());
+
+        this.setupWebSocket();
 
         if (window.location.hash.indexOf("#/splits-io/") === 0) {
             const loadingRun = Run.new();
@@ -425,5 +428,61 @@ export class LiveSplit extends React.Component<{}, State> {
 
     private onSkip() {
         this.state.timer.writeWith((t) => t.skipSplit());
+    }
+
+    private onInitializeGameTime() {
+        this.state.timer.writeWith((t) => t.initializeGameTime());
+    }
+
+    private onSetGameTime(gameTime: string) {
+        const time = TimeSpan.parse(gameTime);
+        if (time != null) {
+            time.with((time) => {
+                this.state.timer.writeWith((t) => t.setGameTime(time));
+            });
+        }
+    }
+
+    private onSetLoadingTimes(loadingTimes: string) {
+        const time = TimeSpan.parse(loadingTimes);
+        if (time != null) {
+            time.with((time) => {
+                this.state.timer.writeWith((t) => t.setLoadingTimes(time));
+            });
+        }
+    }
+
+    private onPauseGameTime() {
+        this.state.timer.writeWith((t) => t.pauseGameTime());
+    }
+
+    private onResumeGameTime() {
+        this.state.timer.writeWith((t) => t.resumeGameTime());
+    }
+
+    // private onSetComparison(comparison: string) {
+    //     this.state.timer.writeWith((t) => t.swit)
+    // }
+
+    private setupWebSocket() {
+        const connection = new WebSocket("ws://localhost:8081/ws/");
+        connection.onmessage = (e) => {
+            if (typeof e.data === "string") {
+                const [command, ...args] = e.data.split(" ");
+                switch (command) {
+                    case "split": this.onSplit(); break;
+                    case "reset": this.onReset(); break;
+                    case "togglepause": this.onPause(); break;
+                    case "undo": this.onUndo(); break;
+                    case "skip": this.onSkip(); break;
+                    case "initgametime": this.onInitializeGameTime(); break;
+                    case "setgametime": this.onSetGameTime(args[0]); break;
+                    case "setloadingtimes": this.onSetLoadingTimes(args[0]); break;
+                    case "pausegametime": this.onPauseGameTime(); break;
+                    case "resumegametime": this.onResumeGameTime(); break;
+                    // case "setcomparison": this.onSetComparison(args[0]); break;
+                }
+            }
+        };
     }
 }

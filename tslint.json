@@ -31,7 +31,8 @@
         ],
         "no-var-keyword": true,
         "prefer-object-spread": true,
-        "strict-type-predicates": true
+        "strict-type-predicates": true,
+        "ordered-imports": false
     },
     "rulesDirectory": []
 }
