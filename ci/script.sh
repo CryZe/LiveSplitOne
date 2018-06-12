@@ -9,7 +9,7 @@ doCompile() {
     (cd livesplit-core && cargo build -p cdylib --target wasm32-unknown-unknown --release)
     (cd livesplit-core/capi/bind_gen && cargo run)
 
-    cp livesplit-core/target/wasm32-unknown-unknown/release/livesplit_core.wasm src/livesplit_core.wasm
+    wasm-opt -O4 livesplit-core/target/wasm32-unknown-unknown/release/livesplit_core.wasm -o src/livesplit_core.wasm
     cp livesplit-core/capi/bindings/wasm/livesplit_core.ts src/livesplit.ts
 
     npm install
