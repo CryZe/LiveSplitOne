@@ -354,13 +354,32 @@ export class RunEditor extends React.Component<Props, State> {
         );
     }
 
+    private renderVariablesButtons(): JSX.Element {
+        return (
+            <div className="btn-group" style={{ width: 160, marginRight: 5 }}>
+                <button onClick={(_) => this.addCustomVariable()}>
+                    Add Variable
+                </button>
+            </div>
+        );
+    }
+
+    private addCustomVariable() {
+        const variableName = prompt("Variable Name:");
+        if (variableName) {
+            // TODO: We honestly need a check if it already exists
+            this.props.editor.setCustomVariable(variableName, "");
+            this.update();
+        }
+    }
+
     private renderTab(tab: Tab, category: Option<Category>): JSX.Element[] {
         switch (tab) {
             case Tab.RealTime:
             case Tab.GameTime:
                 return [this.renderSegmentListButtons(), this.renderSegmentsTable()];
             case Tab.Variables:
-                return [this.renderGeneralButtons(), this.renderVariablesTab(category)];
+                return [this.renderVariablesButtons(), this.renderVariablesTab(category)];
             case Tab.Rules:
                 return [this.renderGeneralButtons(), this.renderRulesTab(category)];
             case Tab.Leaderboard:
@@ -488,7 +507,7 @@ export class RunEditor extends React.Component<Props, State> {
                 if (variable["is-subcategory"]) {
                     let currentFilterValue = this.filters.variables.get(variable.name);
                     if (currentFilterValue === undefined) {
-                        const runValue = this.state.editor.metadata.variables[variable.name];
+                        const runValue = this.state.editor.metadata.speedrun_com_variables[variable.name];
                         if (runValue != null) {
                             currentFilterValue = runValue;
                             this.filters.variables.set(variable.name, currentFilterValue);
@@ -617,6 +636,7 @@ export class RunEditor extends React.Component<Props, State> {
         const metadata = this.state.editor.metadata;
         const gameInfo = getGameInfo(this.state.editor.game);
         const fields: LiveSplit.SettingsDescriptionFieldJson[] = [];
+        const customVariableFields: LiveSplit.SettingsDescriptionFieldJson[] = [];
         const additionalVariables: LiveSplit.SettingsDescriptionFieldJson[] = [];
         let regionOffset = -1;
         let platformOffset = -1;
@@ -652,9 +672,7 @@ export class RunEditor extends React.Component<Props, State> {
                         text: variable.name,
                         value: {
                             CustomCombobox: {
-                                value: Object.keys(metadata.variables).indexOf(variable.name) >= 0
-                                    ? metadata.variables[variable.name]
-                                    : "",
+                                value: unwrapOr(metadata.speedrun_com_variables[variable.name], "" as string),
                                 list: ["", ...Object.values(variable.values.values).map((v) => v.label)],
                                 mandatory: variable.mandatory,
                             },
@@ -700,29 +718,40 @@ export class RunEditor extends React.Component<Props, State> {
             }
         }
 
-        const customVariablesOffset = fields.length;
+        for (const [name, value] of Object.entries(metadata.custom_variables)) {
+            customVariableFields.push({
+                text: name,
+                value: {
+                    String: expect(value, "We iterate over only existing values").value,
+                },
+            });
+        }
+
+        const speedrunComVariablesOffset = fields.length;
 
         fields.push(...additionalVariables);
+
+        function unwrapString(value: LiveSplit.SettingsDescriptionValueJson): string {
+            if ("String" in value) {
+                return value.String;
+            } else {
+                throw new Error("Expected Setting value to be a string.");
+            }
+        }
+        function unwrapBool(value: LiveSplit.SettingsDescriptionValueJson): boolean {
+            if ("Bool" in value) {
+                return value.Bool;
+            } else {
+                throw new Error("Expected Setting value to be a boolean.");
+            }
+        }
+
         return (
             <div className="run-editor-tab">
                 <SettingsComponent
                     factory={new JsonSettingValueFactory()}
                     state={{ fields }}
                     setValue={(index, value) => {
-                        function unwrapString(value: LiveSplit.SettingsDescriptionValueJson): string {
-                            if ("String" in value) {
-                                return value.String;
-                            } else {
-                                throw new Error("Expected Setting value to be a string.");
-                            }
-                        }
-                        function unwrapBool(value: LiveSplit.SettingsDescriptionValueJson): boolean {
-                            if ("Bool" in value) {
-                                return value.Bool;
-                            } else {
-                                throw new Error("Expected Setting value to be a boolean.");
-                            }
-                        }
                         if (index === regionOffset) {
                             const region = unwrapString(value);
                             this.props.editor.setRegionName(region);
@@ -734,13 +763,24 @@ export class RunEditor extends React.Component<Props, State> {
                             this.props.editor.setEmulatorUsage(emulatorUsage);
                         } else {
                             const stringValue = unwrapString(value);
-                            const key = additionalVariables[index - customVariablesOffset].text;
+                            const key = additionalVariables[index - speedrunComVariablesOffset].text;
                             if (stringValue !== "") {
-                                this.props.editor.setVariable(key, stringValue);
+                                this.props.editor.setSpeedrunComVariable(key, stringValue);
                             } else {
-                                this.props.editor.removeVariable(key);
+                                this.props.editor.removeSpeedrunComVariable(key);
                             }
                         }
+                        this.update();
+                    }}
+                />
+                <h4>Custom Variables</h4>
+                <SettingsComponent
+                    factory={new JsonSettingValueFactory()}
+                    state={{ fields: customVariableFields }}
+                    setValue={(index, value) => {
+                        const key = Object.keys(this.state.editor.metadata.custom_variables)[index];
+                        const stringValue = unwrapString(value);
+                        this.props.editor.setCustomVariable(key, stringValue);
                         this.update();
                     }}
                 />
@@ -1025,7 +1065,7 @@ export class RunEditor extends React.Component<Props, State> {
                     && (variable.scope.type === "full-game" || variable.scope.type === "global")
                     && variable["is-subcategory"]
                 ) {
-                    const currentValue = this.state.editor.metadata.variables[variable.name];
+                    const currentValue = this.state.editor.metadata.speedrun_com_variables[variable.name];
                     const foundValue = Object.values(variable.values.values).find((v) => v.label === currentValue);
                     if (foundValue != null && foundValue.rules != null) {
                         subcategoryRules.push(renderMarkdown(`## ${foundValue.label} Rules\n${foundValue.rules}`));
@@ -1811,7 +1851,7 @@ export class RunEditor extends React.Component<Props, State> {
                         variable.category === map(category, (c) => c.id)
                         && (variable.scope.type === "full-game" || variable.scope.type === "global")
                     ) {
-                        this.props.editor.removeVariable(variable.name);
+                        this.props.editor.removeSpeedrunComVariable(variable.name);
                     }
                 }
                 break;
@@ -1877,6 +1917,9 @@ function associateRun<T>(
     if (region != null) {
         editor.setRegionName(region);
     }
+    if (apiRun.comment != null) {
+        editor.setCustomVariable("Comment", apiRun.comment);
+    }
     editor.setEmulatorUsage(apiRun.system.emulated);
     const variables = map(getGameInfo(gameName), (g) => g.variables);
     if (variables != null) {
@@ -1888,7 +1931,7 @@ function associateRun<T>(
                 );
                 if (value != null) {
                     const valueName = value[1].label;
-                    editor.setVariable(variable.name, valueName);
+                    editor.setSpeedrunComVariable(variable.name, valueName);
                 }
             }
         }
