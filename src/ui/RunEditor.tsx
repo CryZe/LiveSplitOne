@@ -367,8 +367,7 @@ export class RunEditor extends React.Component<Props, State> {
     private addCustomVariable() {
         const variableName = prompt("Variable Name:");
         if (variableName) {
-            // TODO: We honestly need a check if it already exists
-            this.props.editor.setCustomVariable(variableName, "");
+            this.props.editor.addCustomVariable(variableName);
             this.update();
         }
     }
