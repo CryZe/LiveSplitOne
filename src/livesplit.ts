@@ -515,6 +515,8 @@ export interface KeyValueComponentStateJson {
     key: string,
     /** The value to visualize. */
     value: string,
+    /** The visual color of the delta time. */
+    visual_color: Color,
     /**
      * Specifies additional abbreviations for the key that can be used instead
      * of the key, if there is not enough space to show the whole key.
@@ -2576,9 +2578,9 @@ export class HotkeyConfigRef {
 export class HotkeyConfigRefMut extends HotkeyConfigRef {
     /**
      * Sets a setting's value by its index to the given value.
-     *
+     * 
      * false is returned if a hotkey is already in use by a different action.
-     *
+     * 
      * This panics if the type of the value to be set is not compatible with the
      * type of the setting's value. A panic can also occur if the index of the
      * setting provided is out of bounds.
@@ -3160,7 +3162,7 @@ export class LayoutEditorRefMut extends LayoutEditorRef {
     /**
      * Sets a setting's value of the selected component by its setting index
      * to the given value.
-     *
+     * 
      * This panics if the type of the value to be set is not compatible with
      * the type of the setting's value. A panic can also occur if the index of
      * the setting provided is out of bounds.
@@ -3178,7 +3180,7 @@ export class LayoutEditorRefMut extends LayoutEditorRef {
     /**
      * Sets a setting's value of the general settings by its setting index to
      * the given value.
-     *
+     * 
      * This panics if the type of the value to be set is not compatible with
      * the type of the setting's value. A panic can also occur if the index of
      * the setting provided is out of bounds.
@@ -3801,9 +3803,9 @@ export class RunRef {
     /**
      * Returns a file name (without the extension) suitable for this Run that
      * is built the following way:
-     *
+     * 
      * Game Name - Category Name
-     *
+     * 
      * If either is empty, the dash is omitted. Special characters that cause
      * problems in file names are also omitted. If an extended category name is
      * used, the variables of the category are appended in a parenthesis.
@@ -3817,9 +3819,9 @@ export class RunRef {
     }
     /**
      * Returns a name suitable for this Run that is built the following way:
-     *
+     * 
      * Game Name - Category Name
-     *
+     * 
      * If either is empty, the dash is omitted. If an extended category name is
      * used, the variables of the category are appended in a parenthesis.
      */
@@ -3834,7 +3836,7 @@ export class RunRef {
      * Returns an extended category name that possibly includes the region,
      * platform and variables, depending on the arguments provided. An extended
      * category name may look like this:
-     *
+     * 
      * Any% (No Tuner, JPN, Wii Emulator)
      */
     extendedCategoryName(showRegion: boolean, showPlatform: boolean, showVariables: boolean): string {
@@ -4172,7 +4174,7 @@ export class RunEditorRefMut extends RunEditorRef {
      * In addition to the segments that are already selected, the segment with
      * the given index is being selected. The segment chosen also becomes the
      * active segment.
-     *
+     * 
      * This panics if the index of the segment provided is out of bounds.
      */
     selectAdditionally(index: number) {
@@ -4184,7 +4186,7 @@ export class RunEditorRefMut extends RunEditorRef {
     /**
      * Selects the segment with the given index. All other segments are
      * unselected. The segment chosen also becomes the active segment.
-     *
+     * 
      * This panics if the index of the segment provided is out of bounds.
      */
     selectOnly(index: number) {
@@ -4334,14 +4336,6 @@ export class RunEditorRefMut extends RunEditorRef {
         }
         const name_allocated = allocString(name);
         instance().exports.RunEditor_remove_speedrun_com_variable(this.ptr, name_allocated.ptr);
-        dealloc(name_allocated);
-    }
-    addCustomVariable(name: string) {
-        if (this.ptr == 0) {
-            throw "this is disposed";
-        }
-        const name_allocated = allocString(name);
-        instance().exports.RunEditor_add_custom_variable(this.ptr, name_allocated.ptr);
         dealloc(name_allocated);
     }
     setCustomVariable(name: string, value: string) {
@@ -7055,9 +7049,9 @@ export class TimerRefMut extends TimerRef {
      * attempt is paused, it also resumes that attempt. Additionally, if the
      * attempt is finished, the final split time is adjusted to not include the
      * pause times as well.
-     *
+     * 
      * # Warning
-     *
+     * 
      * This behavior is not entirely optimal, as generally only the final split
      * time is modified, while all other split times are left unmodified, which
      * may not be what actually happened during the run.
