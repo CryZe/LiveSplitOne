@@ -4338,6 +4338,14 @@ export class RunEditorRefMut extends RunEditorRef {
         instance().exports.RunEditor_remove_speedrun_com_variable(this.ptr, name_allocated.ptr);
         dealloc(name_allocated);
     }
+    addCustomVariable(name: string) {
+        if (this.ptr == 0) {
+            throw "this is disposed";
+        }
+        const name_allocated = allocString(name);
+        instance().exports.RunEditor_add_custom_variable(this.ptr, name_allocated.ptr);
+        dealloc(name_allocated);
+    }
     setCustomVariable(name: string, value: string) {
         if (this.ptr == 0) {
             throw "this is disposed";
