@@ -23,6 +23,8 @@ try {
         const {
             splits,
             splitsKey,
+            localSplitsFileHandle,
+            localSplitsFileName,
             layout,
             comparison,
             timingMethod,
@@ -68,6 +70,8 @@ try {
         root.render(
             <LiveSplit
                 splits={splits}
+                localSplitsFileHandle={localSplitsFileHandle}
+                localSplitsFileName={localSplitsFileName}
                 layout={layout}
                 comparison={comparison}
                 timingMethod={timingMethod}

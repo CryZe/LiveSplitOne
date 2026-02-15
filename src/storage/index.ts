@@ -245,6 +245,50 @@ export async function loadSplitsKey(): Promise<number | undefined> {
     return await db.get("settings", "splitsKey");
 }
 
+export async function storeSplitsFolderHandle(
+    handle?: FileSystemDirectoryHandle,
+) {
+    const db = await getDb();
+
+    await db.put("settings", handle, "splitsFolderHandle");
+}
+
+export async function loadSplitsFolderHandle(): Promise<
+    FileSystemDirectoryHandle | undefined
+> {
+    const db = await getDb();
+
+    return await db.get("settings", "splitsFolderHandle");
+}
+
+export async function storeLocalSplitsFileHandle(
+    handle?: FileSystemFileHandle,
+) {
+    const db = await getDb();
+
+    await db.put("settings", handle, "localSplitsFileHandle");
+}
+
+export async function loadLocalSplitsFileHandle(): Promise<
+    FileSystemFileHandle | undefined
+> {
+    const db = await getDb();
+
+    return await db.get("settings", "localSplitsFileHandle");
+}
+
+export async function storeLocalSplitsFileName(name?: string) {
+    const db = await getDb();
+
+    await db.put("settings", name, "localSplitsFileName");
+}
+
+export async function loadLocalSplitsFileName(): Promise<string | undefined> {
+    const db = await getDb();
+
+    return await db.get("settings", "localSplitsFileName");
+}
+
 export async function storeGeneralSettings(generalSettings: GeneralSettings) {
     const db = await getDb();
 

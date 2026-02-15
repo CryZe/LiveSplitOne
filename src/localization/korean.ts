@@ -58,6 +58,8 @@ export function resolveKorean(text: Label): string {
         case Label.Loading: return "불러오는 중...";
         case Label.Add: return "추가";
         case Label.Import: return "가져오기";
+        case Label.OpenFolder: return "폴더 열기";
+        case Label.LocalFolder: return "로컬 폴더";
         case Label.OpenSplits: return "스플릿 열기";
         case Label.EditSplits: return "스플릿 편집";
         case Label.ExportSplits: return "스플릿 내보내기";

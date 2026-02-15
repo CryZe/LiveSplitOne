@@ -58,6 +58,8 @@ export function resolveDutch(text: Label): string {
         case Label.Loading: return "Laden...";
         case Label.Add: return "Toevoegen";
         case Label.Import: return "Importeren";
+        case Label.OpenFolder: return "Map openen";
+        case Label.LocalFolder: return "Lokale map";
         case Label.OpenSplits: return "Splits openen";
         case Label.EditSplits: return "Splits bewerken";
         case Label.ExportSplits: return "Splits exporteren";

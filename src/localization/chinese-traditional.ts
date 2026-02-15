@@ -6,6 +6,8 @@ export function resolveChineseTraditional(text: Label): string {
 }
 
 const TRADITIONAL_REPLACEMENTS: [string, string][] = [
+    ["本地文件夹", "本機資料夾"],
+    ["文件夹", "資料夾"],
     ["游戏时间", "遊戲時間"],
     ["实时时间", "實時時間"],
     ["计时器", "計時器"],

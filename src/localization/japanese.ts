@@ -58,6 +58,8 @@ export function resolveJapanese(text: Label): string {
         case Label.Loading: return "読み込み中...";
         case Label.Add: return "追加";
         case Label.Import: return "インポート";
+        case Label.OpenFolder: return "フォルダーを開く";
+        case Label.LocalFolder: return "ローカルフォルダー";
         case Label.OpenSplits: return "スプリットを開く";
         case Label.EditSplits: return "スプリットを編集";
         case Label.ExportSplits: return "スプリットをエクスポート";

@@ -103,6 +103,8 @@ type Menu =
 
 export interface Props {
     splits?: Uint8Array;
+    localSplitsFileHandle?: FileSystemFileHandle;
+    localSplitsFileName?: string;
     layout?: Storage.LayoutSettings;
     comparison?: string;
     timingMethod: TimingMethod;
@@ -141,6 +143,8 @@ export interface State {
     allVariables: Set<string>;
     splitsModified: boolean;
     layoutModified: boolean;
+    localSplitsFileHandle?: FileSystemFileHandle;
+    localSplitsFileName?: string;
 }
 
 export let hotkeySystem: Option<HotkeyImplementation> = null;
@@ -148,11 +152,35 @@ export let hotkeySystem: Option<HotkeyImplementation> = null;
 export class LiveSplit extends React.Component<Props, State> {
     public static async loadStoredData() {
         // FIXME: We should probably request all of these concurrently.
-        const splitsKey = await Storage.loadSplitsKey();
-        const splits =
-            splitsKey !== undefined
-                ? await Storage.loadSplits(splitsKey)
-                : undefined;
+        let splitsKey = await Storage.loadSplitsKey();
+        const localSplitsFileHandle = await Storage.loadLocalSplitsFileHandle();
+        let localSplitsFileName = await Storage.loadLocalSplitsFileName();
+        let splits: Uint8Array<ArrayBuffer> | undefined;
+
+        if (localSplitsFileHandle !== undefined) {
+            if (localSplitsFileName === undefined) {
+                localSplitsFileName = localSplitsFileHandle.name;
+            }
+            const canRead =
+                !localSplitsFileHandle.queryPermission ||
+                (await localSplitsFileHandle.queryPermission({
+                    mode: "read",
+                })) === "granted";
+
+            if (canRead) {
+                try {
+                    const file = await localSplitsFileHandle.getFile();
+                    splits = new Uint8Array(await file.arrayBuffer());
+                    splitsKey = undefined;
+                } catch (_) {
+                    splits = undefined;
+                }
+            }
+        }
+
+        if (splits === undefined && splitsKey !== undefined) {
+            splits = await Storage.loadSplits(splitsKey);
+        }
         const layout = await Storage.loadLayout();
         const comparison = await Storage.loadComparison();
         const timingMethod = await Storage.loadTimingMethod();
@@ -163,6 +191,8 @@ export class LiveSplit extends React.Component<Props, State> {
         return {
             splits,
             splitsKey,
+            localSplitsFileHandle,
+            localSplitsFileName,
             layout,
             comparison,
             timingMethod,
@@ -259,6 +289,8 @@ export class LiveSplit extends React.Component<Props, State> {
             allVariables: commandSink.getAllCustomVariables(),
             splitsModified: commandSink.hasBeenModified(),
             layoutModified: false,
+            localSplitsFileHandle: props.localSplitsFileHandle,
+            localSplitsFileName: props.localSplitsFileName,
         };
 
         window.__TAURI__?.event.listen("command", (event) => {
@@ -436,6 +468,10 @@ export class LiveSplit extends React.Component<Props, State> {
                     generalSettings={this.state.generalSettings}
                     commandSink={this.state.commandSink}
                     openedSplitsKey={this.state.openedSplitsKey}
+                    openedLocalSplitsFileHandle={
+                        this.state.localSplitsFileHandle
+                    }
+                    openedLocalSplitsFileName={this.state.localSplitsFileName}
                     callbacks={this}
                     splitsModified={this.state.splitsModified}
                 />
@@ -916,6 +952,7 @@ export class LiveSplit extends React.Component<Props, State> {
     private setRun(run: Run, callback: () => void) {
         maybeDisposeAndThen(this.state.commandSink.setRun(run), callback);
         this.setSplitsKey(undefined);
+        this.setLocalSplitsFileHandle(undefined, undefined);
     }
 
     private importSplitsFromArrayBuffer(buffer: [ArrayBuffer, File]) {
@@ -966,6 +1003,12 @@ export class LiveSplit extends React.Component<Props, State> {
 
     async saveSplits() {
         try {
+            if (this.state.localSplitsFileHandle !== undefined) {
+                await this.saveSplitsToLocalFile(
+                    this.state.localSplitsFileHandle,
+                );
+                return;
+            }
             const openedSplitsKey = await Storage.storeSplits(
                 (callback) => {
                     callback(
@@ -988,6 +1031,50 @@ export class LiveSplit extends React.Component<Props, State> {
                 ),
             );
         }
+    }
+
+    public setLocalSplitsFileHandle(
+        handle?: FileSystemFileHandle,
+        name?: string,
+    ) {
+        this.setState({
+            localSplitsFileHandle: handle,
+            localSplitsFileName: name,
+        });
+        void Storage.storeLocalSplitsFileHandle(handle);
+        void Storage.storeLocalSplitsFileName(name);
+    }
+
+    private async saveSplitsToLocalFile(handle: FileSystemFileHandle) {
+        const hasPermission = await this.ensureFileWritePermission(handle);
+        if (!hasPermission) {
+            throw new Error("Permission denied.");
+        }
+
+        const writable = await handle.createWritable();
+        try {
+            await writable.write(this.state.commandSink.saveAsLssBytes());
+        } finally {
+            await writable.close();
+        }
+
+        this.state.commandSink.markAsUnmodified();
+    }
+
+    private async ensureFileWritePermission(handle: FileSystemFileHandle) {
+        if (!handle.queryPermission || !handle.requestPermission) {
+            return true;
+        }
+
+        const status = await handle.queryPermission({ mode: "readwrite" });
+        if (status === "granted") {
+            return true;
+        }
+
+        return (
+            (await handle.requestPermission({ mode: "readwrite" })) ===
+            "granted"
+        );
     }
 
     onServerConnectionOpened(serverConnection: LiveSplitServer): void {

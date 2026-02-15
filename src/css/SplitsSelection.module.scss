@@ -51,6 +51,17 @@ $splits-row-height: 40px;
     }
 }
 
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: variables.$ui-margin;
+    margin-top: variables.$ui-large-margin;
+
+    h2 {
+        margin: 0;
+    }
+}
+
 .splitsRow {
     display: flex;
     gap: variables.$ui-large-margin;

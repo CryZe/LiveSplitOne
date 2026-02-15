@@ -58,6 +58,8 @@ export function resolveEnglish(text: Label): string {
         case Label.Loading: return "Loading...";
         case Label.Add: return "Add";
         case Label.Import: return "Import";
+        case Label.OpenFolder: return "Open Folder";
+        case Label.LocalFolder: return "Local Folder";
         case Label.OpenSplits: return "Open Splits";
         case Label.EditSplits: return "Edit Splits";
         case Label.ExportSplits: return "Export Splits";

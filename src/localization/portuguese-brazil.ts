@@ -58,6 +58,8 @@ export function resolveBrazilianPortuguese(text: Label): string {
         case Label.Loading: return "Carregando...";
         case Label.Add: return "Adicionar";
         case Label.Import: return "Importar";
+        case Label.OpenFolder: return "Abrir pasta";
+        case Label.LocalFolder: return "Pasta local";
         case Label.OpenSplits: return "Abrir splits";
         case Label.EditSplits: return "Editar splits";
         case Label.ExportSplits: return "Exportar splits";

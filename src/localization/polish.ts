@@ -58,6 +58,8 @@ export function resolvePolish(text: Label): string {
         case Label.Loading: return "Wczytywanie...";
         case Label.Add: return "Dodaj";
         case Label.Import: return "Importuj";
+        case Label.OpenFolder: return "Otwórz folder";
+        case Label.LocalFolder: return "Lokalny folder";
         case Label.OpenSplits: return "Otwórz splity";
         case Label.EditSplits: return "Edytuj splity";
         case Label.ExportSplits: return "Eksportuj splity";

@@ -2,12 +2,91 @@ import { Option } from "./OptionUtil";
 
 // Workaround for Chrome sometimes garbage collecting the input element while it
 // is being used, preventing the onchange event from triggering.
-// @ts-expect-error Unused variable due to above issue
-let fileInputElement = null; // eslint-disable-line
+let fileInputElement = null; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 export const FILE_EXT_SPLITS = ".lss";
 export const FILE_EXT_LAYOUTS = ".ls1l,.lsl";
 export const FILE_EXT_IMAGES = "image/*";
+
+function buildFileSystemAccessTypes(
+    accept: string,
+): FilePickerAcceptType[] | undefined {
+    const parts = accept
+        .split(",")
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0);
+
+    if (parts.length === 0) {
+        return undefined;
+    }
+
+    if (parts.includes("image/*")) {
+        return [
+            {
+                description: "Images",
+                accept: {
+                    "image/*": [
+                        ".png",
+                        ".jpg",
+                        ".jpeg",
+                        ".gif",
+                        ".bmp",
+                        ".webp",
+                        ".svg",
+                    ],
+                },
+            },
+        ];
+    }
+
+    const extensions = parts
+        .filter((part) => part.startsWith("."))
+        .map((part) => part.toLowerCase());
+
+    if (extensions.length === 0) {
+        return undefined;
+    }
+
+    return [
+        {
+            description: "Files",
+            accept: {
+                "application/octet-stream": extensions,
+            },
+        },
+    ];
+}
+
+async function openFileWithFileSystemAccess(
+    accept: string,
+): Promise<File | Error | undefined> {
+    const showOpenFilePicker = window.showOpenFilePicker;
+    if (!showOpenFilePicker) {
+        return undefined;
+    }
+
+    try {
+        const picker = await showOpenFilePicker({
+            types: buildFileSystemAccessTypes(accept),
+            excludeAcceptAllOption: false,
+            multiple: false,
+        });
+
+        if (picker.length === 0) {
+            return undefined;
+        }
+
+        return await picker[0].getFile();
+    } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") {
+            return undefined;
+        }
+        if (e instanceof Error) {
+            return e;
+        }
+        return new Error("Unknown error while opening the file.");
+    }
+}
 
 function openFile(accept: string): Promise<File | undefined> {
     return new Promise((resolve) => {
@@ -61,6 +140,19 @@ export async function openFileAsArrayBuffer(
     const file = await openFile(accept);
     if (file === undefined) {
         return undefined;
+    }
+    return convertFileToArrayBuffer(file);
+}
+
+export async function openFileAsArrayBufferPreferFileSystemAccess(
+    accept: string,
+): Promise<[ArrayBuffer, File] | Error | undefined> {
+    const file = await openFileWithFileSystemAccess(accept);
+    if (file === undefined) {
+        return openFileAsArrayBuffer(accept);
+    }
+    if (file instanceof Error) {
+        return file;
     }
     return convertFileToArrayBuffer(file);
 }

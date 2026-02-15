@@ -71,6 +71,8 @@ export enum Label {
     Loading,
     Add,
     Import,
+    OpenFolder,
+    LocalFolder,
     OpenSplits,
     EditSplits,
     ExportSplits,

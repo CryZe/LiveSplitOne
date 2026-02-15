@@ -58,6 +58,8 @@ export function resolveGerman(text: Label): string {
         case Label.Loading: return "Wird geladen...";
         case Label.Add: return "Hinzufügen";
         case Label.Import: return "Importieren";
+        case Label.OpenFolder: return "Ordner öffnen";
+        case Label.LocalFolder: return "Lokaler Ordner";
         case Label.OpenSplits: return "Splits öffnen";
         case Label.EditSplits: return "Splits bearbeiten";
         case Label.ExportSplits: return "Splits exportieren";

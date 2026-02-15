@@ -58,6 +58,8 @@ export function resolveChineseSimplified(text: Label): string {
         case Label.Loading: return "加载中...";
         case Label.Add: return "添加";
         case Label.Import: return "导入";
+        case Label.OpenFolder: return "打开文件夹";
+        case Label.LocalFolder: return "本地文件夹";
         case Label.OpenSplits: return "打开分段";
         case Label.EditSplits: return "编辑分段";
         case Label.ExportSplits: return "导出分段";

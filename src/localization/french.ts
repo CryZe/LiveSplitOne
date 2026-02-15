@@ -58,6 +58,8 @@ export function resolveFrench(text: Label): string {
         case Label.Loading: return "Chargement...";
         case Label.Add: return "Ajouter";
         case Label.Import: return "Importer";
+        case Label.OpenFolder: return "Ouvrir le dossier";
+        case Label.LocalFolder: return "Dossier local";
         case Label.OpenSplits: return "Ouvrir les splits";
         case Label.EditSplits: return "Modifier les splits";
         case Label.ExportSplits: return "Exporter les splits";

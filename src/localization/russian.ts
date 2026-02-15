@@ -58,6 +58,8 @@ export function resolveRussian(text: Label): string {
         case Label.Loading: return "Загрузка...";
         case Label.Add: return "Добавить";
         case Label.Import: return "Импорт";
+        case Label.OpenFolder: return "Открыть папку";
+        case Label.LocalFolder: return "Локальная папка";
         case Label.OpenSplits: return "Открыть сплиты";
         case Label.EditSplits: return "Редактировать сплиты";
         case Label.ExportSplits: return "Экспортировать сплиты";
